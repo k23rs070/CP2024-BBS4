@@ -145,16 +145,36 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function formatDateToRelative(date) {
+    const now = new Date();
+    const timeDiff = now - date; 
+    const seconds = Math.floor(timeDiff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(months / 12);
+
+    if (years > 0) {
+        return `${years}年前`;
+    } else if (months > 0) {
+        return `${months}ヶ月前`;
+    } else if (days > 0) {
+        return `${days}日前`;
+    } else if (hours > 0) {
+        return `${hours}時間前`;
+    } else if (minutes > 0) {
+        return `${minutes}分前`;
+    } else {
+        return `${seconds}秒前`;
+    }
+}
+
+
 // タイムスタンプのフォーマット
 function formatTimestamp(timestamp) {
-    const date = new Date(timestamp);
-    return date.toLocaleString('ja-JP', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+   const date = new Date(timestamp);
+   return formatDateToRelative(date);  
 }
 
 // 投稿の編集権限チェック
@@ -373,6 +393,19 @@ function updatePost(postId) {
         });
 }
 
+
+// ページが読み込まれた後に日時を更新
+document.addEventListener('DOMContentLoaded', () => {
+    const postTimes = document.querySelectorAll('.post-time'); // 複数の投稿日時を取得
+
+    postTimes.forEach(postTime => {
+        const postDate = new Date(postTime.getAttribute('data-post-date')); // データ属性から日時を取得
+        const relativeTime = formatDateToRelative(postDate); // 日時を「〇日前」形式に変換
+        postTime.textContent = relativeTime; // 変換した日時を表示
+    });
+});
+
+
 // 投稿の削除
 function deletePost(postId) {
     currentEditId = postId;
@@ -516,6 +549,7 @@ window.addEventListener('unload', function() {
         postsListener = null;
     }
 });
+
     </script>
 </head>
 <body>
